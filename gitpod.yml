@@ -1,0 +1,40 @@
+image: gitpod/workspace-full
+
+tasks:
+  - name: Install .NET SDK
+    init: |
+      sudo apt update
+      sudo apt install -y dotnet-sdk-8.0
+    command: |
+      dotnet --version  # Verify installation
+
+  - name: Start Docker Services
+    init: docker-compose up -d
+
+  - name: Restore Backend Dependencies
+    init: |
+      cd backend
+      dotnet restore
+
+  - name: Install Frontend Dependencies
+    init: |
+      cd frontend
+      npm install
+
+  - name: Run Backend
+    command: |
+      cd backend
+      dotnet run
+
+ports:
+  - port: 5000
+    onOpen: open-preview
+  - port: 5432
+    onOpen: ignore
+  - port: 3000
+    onOpen: open-preview
+
+github:
+  prebuilds:
+    master: true
+    branches: true
