@@ -19,19 +19,48 @@ namespace backend.Controllers
         [HttpPost]
         public async Task<IActionResult> AddEmployee([FromBody] EmployeeRequestDTO employeeRequest)
         {
-            var employee = new Employee
+            try
             {
-                Name = employeeRequest.Name,
-                Gender = employeeRequest.Gender,
-                Designation = employeeRequest.Designation,
-                State = employeeRequest.State ?? new List<string>(),
-                DateOfBirth = employeeRequest.DateOfBirth
-            };
-            var createdEmployee = await _employeeService.AddEmployeeAsync(employee);
-            return CreatedAtAction(nameof(GetEmployeeById), new { id = createdEmployee.Id }, createdEmployee);
+                if (employeeRequest == null)
+                {
+                    return BadRequest("Employee data is required");
+                }
+
+                var employee = new Employee
+                {
+                    Name = employeeRequest.Name,
+                    Designation = employeeRequest.Designation,
+                    DateOfJoin = employeeRequest.DateOfJoin,
+                    Salary = employeeRequest.Salary,
+                    Gender = employeeRequest.Gender,
+                    State = employeeRequest.State,
+                    DateOfBirth = employeeRequest.DateOfBirth,
+                    Age = employeeRequest.Age
+                };
+
+                var createdEmployee = await _employeeService.AddEmployeeAsync(employee);
+                if (createdEmployee.Employees != null && createdEmployee.Employees.Any())
+                {
+                    var employeeId = createdEmployee.Employees.First().Id;
+                    return CreatedAtAction(nameof(GetEmployeeById), new { id = employeeId }, createdEmployee);
+                }
+
+                return BadRequest("Failed to create employee");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("GetAllEmployeesInfo")]
+        public async Task<IActionResult> GetAllEmployees()
+        {
+            var employees = await _employeeService.GetAllEmployeesAsync();
+            return Ok(employees);
+        }
+
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetEmployeeById(int id)
         {
             var employee = await _employeeService.GetEmployeeByIdAsync(id);
@@ -39,11 +68,12 @@ namespace backend.Controllers
             return Ok(employee);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetAllEmployees()
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> DeleteEmployee(int id)
         {
-            var employees = await _employeeService.GetAllEmployeesAsync();
-            return Ok(employees);
+            var result = await _employeeService.DeleteEmployeeAsync(id);
+            if (result == "Employee not found") return NotFound(result);
+            return Ok(result);
         }
     }
 }

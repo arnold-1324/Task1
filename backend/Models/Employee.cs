@@ -1,34 +1,42 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 
 namespace backend.Models
 {
     public class Employee
     {
+        [Key]
         public int Id { get; set; }
-
         [Required(ErrorMessage = "Name is required.")]
         [StringLength(100, ErrorMessage = "Name cannot be longer than 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Name can only contain letters.")]
-        [Display(Name = "Employee Name")]
-        public required string Name { get; set; }
-
-        [Required(ErrorMessage = "Gender is required.")]
-        public required string Gender { get; set; }
+        public string? Name { get; set; }
 
         [Required(ErrorMessage = "Designation is required.")]
         [StringLength(100, ErrorMessage = "Designation cannot be longer than 100 characters.")]
-        [RegularExpression(@"^[a-zA-Z]+$", ErrorMessage = "Designation can only contain letters.")]
-        [Display(Name = "Designation")]
-        public required string Designation { get; set; }
+        public string? Designation { get; set; }
+
+
+        [Required(ErrorMessage = "Date of Join is required.")]
+        [Column(TypeName = "date")] // This forces PostgreSQL to use the "date" type
+        public DateTime DateOfJoin { get; set; }
+
+        [Required(ErrorMessage = "Salary is required.")]
+        [Range(0, double.MaxValue, ErrorMessage = "Salary must be a positive number.")]
+        public decimal Salary { get; set; }
+
+        [Required(ErrorMessage = "Gender is required.")]
+        public string? Gender { get; set; }
 
         [Required(ErrorMessage = "State is required.")]
-        public required List<string> State { get; set; }
+        public string? State { get; set; }
 
         [Required(ErrorMessage = "Date of Birth is required.")]
-        [DataType(DataType.Date, ErrorMessage = "Please enter a valid date.")]
+        [Column(TypeName = "date")]
         public DateTime DateOfBirth { get; set; }
 
+        [Required(ErrorMessage = "Age is required.")]
+        [Range(0, 150, ErrorMessage = "Age must be between 0 and 150.")]
         public int Age { get; set; }
     }
 }

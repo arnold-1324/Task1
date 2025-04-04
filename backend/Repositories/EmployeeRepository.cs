@@ -27,7 +27,20 @@ namespace backend.Repositories
 
         public async Task<List<Employee>> GetAllAsync()
         {
-            return await _context.Employees.ToListAsync();
+            return await _context.Employees.ToListAsync(); // Ensure this matches the interface
+        }
+
+        public async Task<string> DeleteAsync(int id)
+        {
+            var employee = await GetByIdAsync(id);
+            if (employee == null)
+            {
+                return "Employee not found";
+            }
+
+            _context.Employees.Remove(employee);
+            await _context.SaveChangesAsync();
+            return "Employee deleted successfully";
         }
     }
 }
