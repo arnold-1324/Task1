@@ -1,12 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { PDFDownloadLink, Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import JsBarcode from "jsbarcode";
+import { Modal } from "react-bootstrap";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import "bootstrap/dist/css/bootstrap.min.css";
+import "bootstrap-icons/font/bootstrap-icons.css";
 import "./EmployeeGrid.css";
+
+ChartJS.register(ArcElement, Tooltip, Legend);
 
 const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
   const [employees, setEmployees] = useState([]);
   const [toastMessage, setToastMessage] = useState(null);
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: 'asc'
+  });
+  const [downloading, setDownloading] = useState(false);
+  const [showSalaryChart, setShowSalaryChart] = useState(false);
 
   const fetchEmployees = () => {
     fetch("api/Employee/GetAllEmployeesInfo")
@@ -49,6 +61,77 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
     const canvas = document.createElement("canvas");
     JsBarcode(canvas, id.toString(), { format: "CODE128" });
     return canvas.toDataURL("image/png");
+  };
+
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+
+    const sortedEmployees = [...employees].sort((a, b) => {
+      if (key === 'dateOfBirth' || key === 'dateOfJoin') {
+        return direction === 'asc' 
+          ? new Date(a[key]) - new Date(b[key])
+          : new Date(b[key]) - new Date(a[key]);
+      }
+      
+      if (direction === 'asc') {
+        return a[key] < b[key] ? -1 : 1;
+      } else {
+        return a[key] > b[key] ? -1 : 1;
+      }
+    });
+
+    setEmployees(sortedEmployees);
+  };
+
+  const getSortIcon = (key) => {
+    if (sortConfig.key === key) {
+      return sortConfig.direction === 'asc' ? ' ↑' : ' ↓';
+    }
+    return '';
+  };
+
+  const handleExportClick = () => {
+    setDownloading(true);
+    setTimeout(() => setDownloading(false), 2000);
+  };
+
+  const prepareSalaryData = () => {
+    const salaryRanges = {
+      '0-25k': 0,
+      '25k-50k': 0,
+      '50k-75k': 0,
+      '75k-100k': 0,
+      '100k+': 0
+    };
+
+    employees.forEach(emp => {
+      const salary = emp.salary;
+      if (salary <= 25000) salaryRanges['0-25k']++;
+      else if (salary <= 50000) salaryRanges['25k-50k']++;
+      else if (salary <= 75000) salaryRanges['50k-75k']++;
+      else if (salary <= 100000) salaryRanges['75k-100k']++;
+      else salaryRanges['100k+']++;
+    });
+
+    return {
+      labels: Object.keys(salaryRanges),
+      datasets: [
+        {
+          data: Object.values(salaryRanges),
+          backgroundColor: [
+            '#FF6384',
+            '#36A2EB',
+            '#FFCE56',
+            '#4BC0C0',
+            '#9966FF'
+          ],
+        },
+      ],
+    };
   };
 
   const styles = StyleSheet.create({
@@ -116,6 +199,28 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
       color: "#777",
       textAlign: "center",
     },
+    table: {
+      display: "table",
+      width: "100%",
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#bfbfbf",
+    },
+    tableRow: {
+      flexDirection: "row",
+    },
+    tableHeader: {
+      backgroundColor: "#f0f0f0",
+      fontWeight: "bold",
+    },
+    tableCell: {
+      width: "12.5%",
+      padding: 5,
+      borderStyle: "solid",
+      borderWidth: 1,
+      borderColor: "#bfbfbf",
+      fontSize: 8,
+    },
   });
 
   const EmployeePDF = ({ employee }) => {
@@ -164,17 +269,124 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
     );
   };
 
+  const EmployeeListPDF = () => (
+    <Document>
+      <Page size="A4" style={styles.page}>
+        <Text style={{ fontSize: 16, marginBottom: 10, textAlign: "center" }}>Employee List</Text>
+        <View style={styles.table}>
+          <View style={[styles.tableRow, styles.tableHeader]}>
+            <Text style={styles.tableCell}>Name</Text>
+            <Text style={styles.tableCell}>Gender</Text>
+            <Text style={styles.tableCell}>Designation</Text>
+            <Text style={styles.tableCell}>State</Text>
+            <Text style={styles.tableCell}>Date of Birth</Text>
+            <Text style={styles.tableCell}>Date of Join</Text>
+            <Text style={styles.tableCell}>Salary</Text>
+            <Text style={styles.tableCell}>Age</Text>
+          </View>
+          {employees.map((employee) => (
+            <View key={employee.id} style={styles.tableRow}>
+              <Text style={styles.tableCell}>{employee.name}</Text>
+              <Text style={styles.tableCell}>{employee.gender}</Text>
+              <Text style={styles.tableCell}>{employee.designation}</Text>
+              <Text style={styles.tableCell}>{employee.state}</Text>
+              <Text style={styles.tableCell}>
+                {new Date(employee.dateOfBirth).toLocaleDateString()}
+              </Text>
+              <Text style={styles.tableCell}>
+                {new Date(employee.dateOfJoin).toLocaleDateString()}
+              </Text>
+              <Text style={styles.tableCell}>{employee.salary.toFixed(2)}</Text>
+              <Text style={styles.tableCell}>{employee.age}</Text>
+            </View>
+          ))}
+        </View>
+      </Page>
+    </Document>
+  );
+
   return (
     <div className="employee-grid-container">
-      <h2 className="grid-title">Employee Details</h2>
+      <div className="container mb-3">
+        {/* First Row: Title */}
+        <div className="row mb-2">
+          <div className="col">
+            <h2 className="grid-title">Employee Details</h2>
+          </div>
+        </div>
+
+        {/* Second Row: Buttons aligned right */}
+        <div className="row">
+          <div className="col text-end">
+            <button
+              className="btn btn-info salary-chart-btn me-2 "
+              style={{width:"170px"}}
+              onClick={() => setShowSalaryChart(true)}
+            >
+              <i className="bi bi-pie-chart-fill me-2"></i>
+              Salary Distribution
+            </button>
+            <PDFDownloadLink
+              document={<EmployeeListPDF />}
+              fileName="Employee_List.pdf"
+              className={`btn btn-success export-btn ${downloading ? 'downloading' : ''}`}
+              onClick={handleExportClick}
+            >
+              {({ loading }) => (
+                <>
+                  <i className="bi bi-cloud-download me-2"></i>
+                  {loading ? "Generating PDF..." : "Export to PDF"}
+                </>
+              )}
+            </PDFDownloadLink>
+          </div>
+        </div>
+      </div>
+      <Modal
+        show={showSalaryChart}
+        onHide={() => setShowSalaryChart(false)}
+        centered
+        size="lg"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Salary Distribution</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div style={{ height: '400px' }}>
+            <Pie 
+              data={prepareSalaryData()}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    position: 'bottom',
+                  },
+                },
+              }}
+            />
+          </div>
+        </Modal.Body>
+      </Modal>
+
       <table className="table table-bordered">
         <thead className="table-dark">
           <tr>
-            <th>Name</th>
-            <th>Gender</th>
-            <th>Designation</th>
-            <th>Date of Birth</th>
-            <th>Date of Join</th>
+            <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>
+              Name {getSortIcon('name')}
+            </th>
+            <th onClick={() => handleSort('gender')} style={{ cursor: 'pointer' }}>
+              Gender {getSortIcon('gender')}
+            </th>
+            <th onClick={() => handleSort('designation')} style={{ cursor: 'pointer' }}>
+              Designation {getSortIcon('designation')}
+            </th>
+            <th onClick={() => handleSort('dateOfBirth')} style={{ cursor: 'pointer' }}>
+              Date of Birth {getSortIcon('dateOfBirth')}
+            </th>
+            <th onClick={() => handleSort('dateOfJoin')} style={{ cursor: 'pointer' }}>
+              Date of Join {getSortIcon('dateOfJoin')}
+            </th>
             <th>Actions</th>
             <th>Download ID Card</th>
           </tr>
@@ -196,9 +408,15 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
                 <PDFDownloadLink
                   document={<EmployeePDF employee={employee} />}
                   fileName={`Employee_${employee.id}_IDCard.pdf`}
-                  className="btn btn-primary"
+                  className="btn btn-primary download-btn"
+                  onClick={() => setDownloading(true)}
                 >
-                  {({ loading }) => (loading ? "Loading..." : "Download ID Card")}
+                  {({ loading }) => (
+                    <>
+                      <i className="bi bi-download me-2"></i>
+                      {loading ? "Loading..." : "Download ID Card"}
+                    </>
+                  )}
                 </PDFDownloadLink>
               </td>
             </tr>

@@ -31,6 +31,11 @@
   background-color: #343a40;
   color: #ffffff;
   font-weight: bold;
+  user-select: none;
+}
+
+.table th:not(:last-child):hover {
+  background-color: #2c3238;
 }
 
 .table tbody tr:nth-child(even) {
@@ -52,4 +57,88 @@
 
 .btn-danger:hover {
   background-color: #c82333;
+}
+
+.btn-success {
+  background-color: #28a745;
+  color: #ffffff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+}
+
+.export-btn,
+.download-btn {
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.export-btn:hover,
+.download-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.export-btn.downloading,
+.download-btn:active {
+  transform: scale(0.95);
+}
+
+.export-btn i,
+.download-btn i {
+  transition: transform 0.3s ease;
+}
+
+.export-btn:hover i,
+.download-btn:hover i {
+  transform: translateY(-2px);
+}
+
+.export-btn.downloading i,
+.download-btn:active i {
+  animation: bounce 1s infinite;
+}
+
+.salary-chart-btn {
+  background-color: #17a2b8;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.salary-chart-btn:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.salary-chart-btn:active {
+  transform: scale(0.95);
+}
+
+.salary-chart-btn i {
+  transition: transform 0.3s ease;
+}
+
+.salary-chart-btn:hover i {
+  transform: rotate(15deg);
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
 }
