@@ -381,6 +381,15 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
             <th onClick={() => handleSort('designation')} style={{ cursor: 'pointer' }}>
               Designation {getSortIcon('designation')}
             </th>
+            <th onClick={() => handleSort('state')} style={{ cursor: 'pointer' }}>
+              State {getSortIcon('state')}
+            </th>
+            <th onClick={() => handleSort('salary')} style={{ cursor: 'pointer' }}>
+              Salary {getSortIcon('salary')}
+            </th>
+            <th onClick={() => handleSort('age')} style={{ cursor: 'pointer' }}>
+              Age {getSortIcon('age')}
+            </th>
             <th onClick={() => handleSort('dateOfBirth')} style={{ cursor: 'pointer' }}>
               Date of Birth {getSortIcon('dateOfBirth')}
             </th>
@@ -397,6 +406,9 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
               <td>{employee.name}</td>
               <td>{employee.gender}</td>
               <td>{employee.designation}</td>
+              <td>{employee.state}</td>
+              <td>{employee.salary.toFixed(2)}</td>
+              <td>{employee.age}</td>
               <td>{new Date(employee.dateOfBirth).toLocaleDateString()}</td>
               <td>{new Date(employee.dateOfJoin).toLocaleDateString()}</td>
               <td>
