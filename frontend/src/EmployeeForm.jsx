@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { Dropdown, Form, Button } from "react-bootstrap";
 import "./EmployeeForm.css";
 
-const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
+const EmployeeForm = ({ refreshEmployees, selectedEmployee, setSelectedEmployee }) => {
   const [formData, setFormData] = useState({
     name: "",
     designation: "",
@@ -29,6 +29,21 @@ const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
     ];
     setStates(indianStates);
   }, []);
+
+  useEffect(() => {
+    if (selectedEmployee) {
+      setFormData({
+        name: selectedEmployee.name,
+        designation: selectedEmployee.designation,
+        dateOfJoin: selectedEmployee.dateOfJoin.split('T')[0],
+        salary: selectedEmployee.salary,
+        gender: selectedEmployee.gender,
+        state: selectedEmployee.state,
+        dateOfBirth: selectedEmployee.dateOfBirth.split('T')[0],
+        age: selectedEmployee.age,
+      });
+    }
+  }, [selectedEmployee]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -68,17 +83,19 @@ const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
   };
 
   const handleSubmit = async (e) => {
-    debugger;
     e.preventDefault();
-
     const payload = {
       ...formData,
       salary: parseFloat(formData.salary).toFixed(2),
     };
 
     try {
-      const response = await fetch("api/Employee", {
-        method: "POST",
+      const url = selectedEmployee 
+        ? `api/Employee/${selectedEmployee.id}/UpdateEmployee`
+        : "api/Employee";
+      
+      const response = await fetch(url, {
+        method: selectedEmployee ? "PUT" : "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -87,18 +104,8 @@ const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
 
       const data = await response.json();
       if (response.ok) {
-       // addEmployee(data.employees[0]); // Add the new employee to the grid
-        refreshEmployees(); // Trigger the EmployeeGrid to refresh its data
-        setFormData({
-          name: "",
-          designation: "",
-          dateOfJoin: "",
-          salary: "",
-          gender: "",
-          state: "",
-          dateOfBirth: "",
-          age: "",
-        });
+        refreshEmployees();
+        resetForm();
         setToastMessage({ type: "success", text: data.message });
       } else {
         setToastMessage({ type: "danger", text: data.message || "An error occurred." });
@@ -107,6 +114,20 @@ const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
       setToastMessage({ type: "danger", text: "Failed to connect to the server." });
       console.error("Error:", error);
     }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      designation: "",
+      dateOfJoin: "",
+      salary: "",
+      gender: "",
+      state: "",
+      dateOfBirth: "",
+      age: "",
+    });
+    setSelectedEmployee(null);
   };
 
   return (
@@ -250,8 +271,18 @@ const EmployeeForm = ({ addEmployee, refreshEmployees }) => {
           />
         </Form.Group>
         <Button type="submit" variant="primary" className="btn btn-primary">
-          Submit
+          {selectedEmployee ? "Update" : "Submit"}
         </Button>
+        {selectedEmployee && (
+          <Button 
+            type="button" 
+            variant="secondary" 
+            className="btn btn-secondary ms-2"
+            onClick={resetForm}
+          >
+            Cancel
+          </Button>
+        )}
       </Form>
     </div>
   );

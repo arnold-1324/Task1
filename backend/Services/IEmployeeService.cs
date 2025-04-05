@@ -11,5 +11,6 @@ namespace backend.Services
         Task<EmployeeResponseDTO> GetEmployeeByIdAsync(int id);
         Task<List<Employee>> GetAllEmployeesAsync(); // Ensure this matches the implementation
         Task<string> DeleteEmployeeAsync(int id);
+        Task<EmployeeResponseDTO> UpdateEmployeeAsync(int id, Employee employee);
     }
 }

@@ -8,7 +8,8 @@ namespace backend.Repositories
         Task<Employee?> GetByIdAsync(int id); 
         Task<List<Employee>> GetAllAsync(); 
 
-        Task <string> DeleteAsync(int id);
+        Task<string> DeleteAsync(int id);
 
+        Task<Employee?> UpdateAsync(int id, Employee employee);
     }
 }

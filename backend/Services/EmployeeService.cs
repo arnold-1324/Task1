@@ -102,5 +102,52 @@ namespace backend.Services
         {
             return await _employeeRepository.DeleteAsync(id);
         }
+
+        public async Task<EmployeeResponseDTO> UpdateEmployeeAsync(int id, Employee employee)
+        {
+            try
+            {
+                var updatedEmployee = await _employeeRepository.UpdateAsync(id, employee);
+                if (updatedEmployee == null)
+                {
+                    return new EmployeeResponseDTO
+                    {
+                        Success = false,
+                        Message = "Employee not found",
+                        Employees = null
+                    };
+                }
+
+                return new EmployeeResponseDTO
+                {
+                    Success = true,
+                    Message = "Employee updated successfully",
+                    Employees = new List<EmployeeData>
+                    {
+                        new EmployeeData
+                        {
+                            Id = updatedEmployee.Id,
+                            Name = updatedEmployee.Name,
+                            Gender = updatedEmployee.Gender,
+                            Designation = updatedEmployee.Designation,
+                            State = updatedEmployee.State,
+                            DateOfBirth = updatedEmployee.DateOfBirth,
+                            DateOfJoin = updatedEmployee.DateOfJoin,
+                            Salary = updatedEmployee.Salary,
+                            Age = updatedEmployee.Age
+                        }
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                return new EmployeeResponseDTO
+                {
+                    Success = false,
+                    Message = $"An error occurred: {ex.Message}",
+                    Employees = null
+                };
+            }
+        }
     }
 }

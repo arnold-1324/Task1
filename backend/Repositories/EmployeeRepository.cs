@@ -42,5 +42,26 @@ namespace backend.Repositories
             await _context.SaveChangesAsync();
             return "Employee deleted successfully";
         }
+
+        public async Task<Employee?> UpdateAsync(int id, Employee employee)
+        {
+            var existingEmployee = await _context.Employees.FindAsync(id);
+            if (existingEmployee == null)
+            {
+                return null;
+            }
+
+            existingEmployee.Name = employee.Name;
+            existingEmployee.Designation = employee.Designation;
+            existingEmployee.DateOfJoin = employee.DateOfJoin;
+            existingEmployee.Salary = employee.Salary;
+            existingEmployee.Gender = employee.Gender;
+            existingEmployee.State = employee.State;
+            existingEmployee.DateOfBirth = employee.DateOfBirth;
+            existingEmployee.Age = employee.Age;
+
+            await _context.SaveChangesAsync();
+            return existingEmployee;
+        }
     }
 }

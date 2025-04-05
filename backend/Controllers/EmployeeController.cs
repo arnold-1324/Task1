@@ -54,7 +54,7 @@ namespace backend.Controllers
         }
 
         [HttpGet("GetAllEmployeesInfo")]
-        public async Task<IActionResult> GetAllEmployees()
+        public async Task<IActionResult> GetAllEmployees([FromQuery] int pageNo)
         {
             var employees = await _employeeService.GetAllEmployeesAsync();
             return Ok(employees);
@@ -74,6 +74,42 @@ namespace backend.Controllers
             var result = await _employeeService.DeleteEmployeeAsync(id);
             if (result == "Employee not found") return NotFound(result);
             return Ok(result);
+        }
+
+        [HttpPut("{id:int}/UpdateEmployee")]
+        public async Task<IActionResult> UpdateEmployee(int id, [FromBody] EmployeeRequestDTO employeeRequest)
+        {
+            try
+            {
+                if (employeeRequest == null)
+                {
+                    return BadRequest("Employee data is required");
+                }
+
+                var employee = new Employee
+                {
+                    Name = employeeRequest.Name,
+                    Designation = employeeRequest.Designation,
+                    DateOfJoin = employeeRequest.DateOfJoin,
+                    Salary = employeeRequest.Salary,
+                    Gender = employeeRequest.Gender,
+                    State = employeeRequest.State,
+                    DateOfBirth = employeeRequest.DateOfBirth,
+                    Age = employeeRequest.Age
+                };
+
+                var result = await _employeeService.UpdateEmployeeAsync(id, employee);
+                if (!result.Success)
+                {
+                    return NotFound(result);
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"An error occurred: {ex.Message}");
+            }
         }
     }
 }

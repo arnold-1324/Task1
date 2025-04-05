@@ -10,7 +10,7 @@ import "./EmployeeGrid.css";
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
+const EmployeeGrid = ({ refreshEmployeesTrigger, onEmployeeSelect }) => {
   const [employees, setEmployees] = useState([]);
   const [toastMessage, setToastMessage] = useState(null);
   const [sortConfig, setSortConfig] = useState({
@@ -402,7 +402,12 @@ const EmployeeGrid = ({ refreshEmployeesTrigger }) => {
         </thead>
         <tbody>
           {employees.map((employee) => (
-            <tr key={employee.id}>
+            <tr 
+              key={employee.id} 
+              onClick={() => onEmployeeSelect(employee)}
+              style={{ cursor: 'pointer' }}
+              className="employee-row"
+            >
               <td>{employee.name}</td>
               <td>{employee.gender}</td>
               <td>{employee.designation}</td>
